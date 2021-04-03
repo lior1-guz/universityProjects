@@ -55,7 +55,7 @@ int byebye();
 
 int main(int argc, char** argv)
 {
-	superShellLoop();
+	superShellLoop();//run in a loop until byebye cmd is executed
 	return EXIT_SUCCESS;
 }
 
@@ -131,7 +131,7 @@ char** superShellSplitLine(char* line)
 	{
 		errorAllocationFailed();
 	}
-	token = strtok(line, SUPERSHELL_TOK_DELIM);
+	token = strtok(line, SUPERSHELL_TOK_DELIM);//split the line by SUPERSHELL_TOK_DELIM
 	while (token != NULL)
 	{
 		listOfArgs[indexInTokensArray] = token;
@@ -321,7 +321,7 @@ int superShellExec(char** args)
 	}
 	else if (strcmp(args[0], "letterFreq") == 0)
 	{
-		if (args[1] == NULL)
+		if (args[1] == NULL)//check param
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
 		}
@@ -334,12 +334,12 @@ int superShellExec(char** args)
 	{
 
 		num = args[3];
-		if (args[1] == NULL || args[2] == NULL || args[3] == NULL)
+		if (args[1] == NULL || args[2] == NULL || args[3] == NULL)//check param
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
 			return -1;
 		}
-		else if (num[0] == '-')
+		else if (num[0] == '-')//check param
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
 			return -1;
@@ -352,12 +352,12 @@ int superShellExec(char** args)
 	else if (strcmp(args[0], "lowercaseByIndex") == 0)
 	{
 		num = args[3];
-		if (args[1] == NULL || args[2] == NULL || args[3] == NULL)
+		if (args[1] == NULL || args[2] == NULL || args[3] == NULL)//check param
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
 			return -1;
 		}
-		else if (num[0] == '-')
+		else if (num[0] == '-')//check param
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
 			return -1;
@@ -370,12 +370,12 @@ int superShellExec(char** args)
 	else if (strcmp(args[0], "randomFile") == 0)
 	{
 		num = args[1];
-		if (args[1] == NULL || args[2] == NULL)
+		if (args[1] == NULL || args[2] == NULL)//check param
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
 			return 1;
 		}
-		else if (num[0] == '-')
+		else if (num[0] == '-')//check param
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
 			return -1;
@@ -387,7 +387,7 @@ int superShellExec(char** args)
 	}
 	else if (strcmp(args[0], "compressFile") == 0)
 	{
-		if (args[1] == NULL || args[2] == NULL)
+		if (args[1] == NULL || args[2] == NULL)//check param
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
 			return 1;
@@ -401,11 +401,11 @@ int superShellExec(char** args)
 	{
 		return byebye();
 	}
-	return superShellLaunch(args);
+	return superShellLaunch(args);//call the standard shell cmd's
 }
 
 
-int myCd(char** args)
+int myCd(char** args)//my implementation to cd
 {
 	char path[PATH_LEN];
 	if (args[1] == NULL)
@@ -414,7 +414,7 @@ int myCd(char** args)
 	}
 	else if (strcmp(args[1], "..") == 0)//check if we need to go back
 	{
-		if (chdir("..") != 0)//use chdir function
+		if (chdir("..") != 0)//use chdir function to go backwards
 		{
 			perror("cd .. failed");
 			return 1;
@@ -479,10 +479,10 @@ int encryptFile(char* srcFile, int num, char* destFile)//param sent to the func 
 int decryptFile(char* srcFile, int num, char* destFile)
 {
 	int newNum = (-1) * num;
-	return encryptFile(srcFile, newNum, destFile);
+	return encryptFile(srcFile, newNum, destFile);//call to encrypt with the right value for decrypt
 }
 
-void initTimeOut()
+void initTimeOut()//initializing the TimeOut struct
 {
 	int i;
 	for (i = 0; i < TIMEOUT_ARRAY; i++)//this loop initializing the arrayOfLockedCmds before use
@@ -500,7 +500,7 @@ int lockCmdForTime(char* cmdNameToStop, int secToStop)
 		{
 			arrayOfLockedCmds[i].active = true;
 			arrayOfLockedCmds[i].secToStop = secToStop;
-			gettimeofday(&(arrayOfLockedCmds[i].startTime), NULL);
+			gettimeofday(&(arrayOfLockedCmds[i].startTime), NULL);//put start time in the struct
 			strcpy(arrayOfLockedCmds[i].stopedCmd, cmdNameToStop);
 			break;
 		}
@@ -508,7 +508,7 @@ int lockCmdForTime(char* cmdNameToStop, int secToStop)
 	return 1;
 }
 
-bool checkIfExist(char* checkCmdNameToStop, int* index)
+bool checkIfExist(char* checkCmdNameToStop, int* index)//checks if a stoped cmd exists
 {
 	int i;
 	for (i = 0; i < TIMEOUT_ARRAY; i++)
@@ -525,7 +525,7 @@ bool checkIfExist(char* checkCmdNameToStop, int* index)
 	return false;
 }
 
-void deleteFromLockedArray(int indexOfLockedToDel)
+void deleteFromLockedArray(int indexOfLockedToDel)//delete locked cmd from array
 {
 	arrayOfLockedCmds[indexOfLockedToDel].active = false;
 	strcpy(arrayOfLockedCmds[indexOfLockedToDel].stopedCmd, "");
@@ -552,14 +552,14 @@ int letterFreq(char* srcFile)
 
 	while (rbytes > 0)
 	{
-		if (tempChar[0] >= 'A' && tempChar[0] <= 'Z')
+		if (tempChar[0] >= 'A' && tempChar[0] <= 'Z')//check if tempChar is a valid char
 		{
 			letters[tempChar[0] - 'A']++;
 			totalLetInFile++;
 
 		}
 
-		if (tempChar[0] >= 'a' && tempChar[0] <= 'z')
+		if (tempChar[0] >= 'a' && tempChar[0] <= 'z')//check if tempChar is a valid char
 		{
 			letters[tempChar[0] - 'a']++;
 			totalLetInFile++;
@@ -587,7 +587,7 @@ int letterFreq(char* srcFile)
 		maxTemp = 0;
 	}
 
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 3; i++)//print the Frequency
 	{
 		fprintf(stdout, "%c - %.1f%\n", maxChar[i], (maxAppearence[i] * 100) / totalLetInFile);
 	}
@@ -735,7 +735,7 @@ int randomFile(int x, char* destFile)
 
 	for (i = 0; i < x; i++)
 	{
-		buff[0] = randomletter[random() % 52];
+		buff[0] = randomletter[random() % 52];//take a random letter from array of letters
 		if ((wbytes = write(fd_dest, buff, 1)) == -1)
 		{
 			perror("write");
@@ -786,8 +786,8 @@ int compressFile(char* fileLocation, char* destFileLocation)
 		}
 		while (buff[0] == buffCmp[0])//check if both are equal
 		{
-			countLetIdentical++;
-			if (fileLen - countLetIdentical > 0)
+			countLetIdentical++;//if identical count the num of appearances
+			if (fileLen - countLetIdentical > 0)//check if we are at the end of the file
 			{
 				if ((rbytes = read(fd_src, buffCmp, 1)) == -1)//start reading
 				{
@@ -795,15 +795,15 @@ int compressFile(char* fileLocation, char* destFileLocation)
 					return(-1);
 				}
 			}
-			else
+			else//if we arrived to the end of the file
 			{
 				break;
 			}
 		}
-		if (countLetIdentical >= 4)
+		if (countLetIdentical >= 4)//if there are more than 4 let identical in a raw
 		{
 			outPutBuff[0] = buff[0];
-			sprintf(buffITOA, "%d", countLetIdentical);
+			sprintf(buffITOA, "%d", countLetIdentical);//replace itoa
 			outPutBuff[1] = buffITOA[0];
 			if ((wbytes = write(fd_dest, outPutBuff, 2)) == -1)
 			{
@@ -825,7 +825,7 @@ int compressFile(char* fileLocation, char* destFileLocation)
 				countLetIdentical--;
 			}
 		}
-		lseek(fd_src, -1, SEEK_CUR);
+		lseek(fd_src, -1, SEEK_CUR);//return one let backwards
 		countLetIdentical = 1;
 	}
 	close(fd_dest);
@@ -833,7 +833,7 @@ int compressFile(char* fileLocation, char* destFileLocation)
 	return 1;
 }
 
-int byebye()
+int byebye()//finally exit superShell
 {
 	return 0;
 }
