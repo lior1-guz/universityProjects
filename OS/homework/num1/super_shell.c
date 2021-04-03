@@ -21,7 +21,6 @@
 #define BUFF_CPY_FOR_REDIRECTION 128
 #define PATH_LEN 100
 #define MODULU_ENCRYPTION 256
-#define TIMEOUT_ARRAY 15
 
 
 typedef struct timeOut {
@@ -31,21 +30,18 @@ typedef struct timeOut {
 	bool active;
 }timeOut;
 
-timeOut arrayOfLockedCmds[TIMEOUT_ARRAY];//global array of locked cmds
-
 void superShellLoop();
 char* superShellReadLine();
 char** superShellSplitLine(char* line);
-int superShellExec(char** args);
+int superShellExec(char** args, timeOut** arrayOfLockedCmds, int* TIMEOUT_ARRAY);
 void errorAllocationFailed();
 int superShellLaunch(char** args);
 int myCd(char** args);
 int encryptFile(char* srcFile, int num, char* destFile);
 int decryptFile(char* srcFile, int num, char* destFile);
-void initTimeOut();
-int lockCmdForTime(char* cmdNameToStop, int secToStop);
-bool checkIfExist(char* checkCmdNameToStop, int* index);
-void deleteFromLockedArray(int indexOfLockedToDel);
+int lockCmdForTime(char* cmdNameToStop, int secToStop, timeOut** arrayOfLockedCmds, int* TIMEOUT_ARRAY);
+bool checkIfExist(char* checkCmdNameToStop, int* index, timeOut** arrayOfLockedCmds, int* TIMEOUT_ARRAY);
+void deleteFromLockedArray(int indexOfLockedToDel, timeOut** arrayOfLockedCmds);
 int letterFreq(char* srcFile);
 int uppercaseByIndex(char* srcFile, char* destFile, int index);
 int lowercaseByIndex(char* srcFile, char* destFile, int index);
@@ -64,16 +60,20 @@ void superShellLoop()
 {
 	char* lineFromSuperShell;
 	char** listOfArgs;
+	timeOut* arrayOfLockedCmds;
+	int TIMEOUT_ARRAY = 0;
 	int status;
-	initTimeOut();
 	do {
 		printf("SuperShell> ");//prints the prompt to the screen
 		lineFromSuperShell = superShellReadLine();//get line from user
 		listOfArgs = superShellSplitLine(lineFromSuperShell);/*split the lines*/
-		status = superShellExec(listOfArgs);
+		status = superShellExec(listOfArgs, &arrayOfLockedCmds, &TIMEOUT_ARRAY);
 		free(lineFromSuperShell);
 		free(listOfArgs);
 	} while (status);
+
+	free(arrayOfLockedCmds);
+	//free allocation of locked timed out cmd's
 }
 
 char* superShellReadLine()
@@ -228,7 +228,7 @@ int superShellLaunch(char** args)
 }
 
 
-int superShellExec(char** args)
+int superShellExec(char** args, timeOut** arrayOfLockedCmds, int* TIMEOUT_ARRAY)
 {
 	int indexOfLockedCmd;
 	char* num;
@@ -241,12 +241,12 @@ int superShellExec(char** args)
 
 	//check first if lock is active and this is the locked cmd and time hasnt passed print "locked..." if this is the cmd and the  time has passed timeOut->active =false
 	struct timeval currentTime;
-	if (checkIfExist(args[0], &indexOfLockedCmd) == true)//if the cmd is found in the locked cmd array
+	if (checkIfExist(args[0], &indexOfLockedCmd, arrayOfLockedCmds, TIMEOUT_ARRAY) == true)//if the cmd is found in the locked cmd array
 	{
 		gettimeofday(&currentTime, NULL);
-		if (currentTime.tv_sec - arrayOfLockedCmds[indexOfLockedCmd].startTime.tv_sec > arrayOfLockedCmds[indexOfLockedCmd].secToStop)
+		if (currentTime.tv_sec - ((*arrayOfLockedCmds))[indexOfLockedCmd].startTime.tv_sec > ((*arrayOfLockedCmds))[indexOfLockedCmd].secToStop)
 		{
-			deleteFromLockedArray(indexOfLockedCmd);//delete from array of locked cmds
+			deleteFromLockedArray(indexOfLockedCmd, arrayOfLockedCmds);//delete from array of locked cmds
 		}
 		else//the time has not passed
 		{
@@ -316,7 +316,28 @@ int superShellExec(char** args)
 		}
 		else
 		{
-			return lockCmdForTime(args[1], atoi(args[2]));
+			//reallocate array by 1
+			if ((*TIMEOUT_ARRAY) == 0)//allocate and not reallocate
+			{
+				((*arrayOfLockedCmds)) = (timeOut*)malloc(sizeof(timeOut));
+				(*TIMEOUT_ARRAY)++;
+				if (((*arrayOfLockedCmds)) == NULL)
+				{
+					errorAllocationFailed();
+				}
+			}
+			else//needs to reallocate
+			{
+				(*TIMEOUT_ARRAY)++;
+				timeOut* tempAdd = ((*arrayOfLockedCmds));
+				((*arrayOfLockedCmds)) = realloc(tempAdd, *TIMEOUT_ARRAY);
+				if (arrayOfLockedCmds == NULL)
+				{
+					errorAllocationFailed();
+				}
+			}
+			((*arrayOfLockedCmds))[(*TIMEOUT_ARRAY) - 1].active = false;
+			return lockCmdForTime(args[1], atoi(args[2]), arrayOfLockedCmds, TIMEOUT_ARRAY);
 		}
 	}
 	else if (strcmp(args[0], "letterFreq") == 0)
@@ -482,53 +503,45 @@ int decryptFile(char* srcFile, int num, char* destFile)
 	return encryptFile(srcFile, newNum, destFile);//call to encrypt with the right value for decrypt
 }
 
-void initTimeOut()//initializing the TimeOut struct
+int lockCmdForTime(char* cmdNameToStop, int secToStop, timeOut** arrayOfLockedCmds, int* TIMEOUT_ARRAY)
 {
 	int i;
-	for (i = 0; i < TIMEOUT_ARRAY; i++)//this loop initializing the arrayOfLockedCmds before use
+	for (i = 0; i < *TIMEOUT_ARRAY; i++)
 	{
-		arrayOfLockedCmds[i].active = false;
-	}
-}
-
-int lockCmdForTime(char* cmdNameToStop, int secToStop)
-{
-	int i;
-	for (i = 0; i < TIMEOUT_ARRAY; i++)
-	{
-		if (arrayOfLockedCmds[i].active == false)//isEmptyPlace -> start initializing it with blocked cmd
+		if ((*(arrayOfLockedCmds))[i].active == false)//isEmptyPlace -> start initializing it with blocked cmd
 		{
-			arrayOfLockedCmds[i].active = true;
-			arrayOfLockedCmds[i].secToStop = secToStop;
-			gettimeofday(&(arrayOfLockedCmds[i].startTime), NULL);//put start time in the struct
-			strcpy(arrayOfLockedCmds[i].stopedCmd, cmdNameToStop);
+			((*arrayOfLockedCmds))[i].active = true;
+			((*arrayOfLockedCmds))[i].secToStop = secToStop;
+			gettimeofday(&(((*arrayOfLockedCmds))[i].startTime), NULL);//put start time in the struct
+			strcpy(((*arrayOfLockedCmds))[i].stopedCmd, cmdNameToStop);
 			break;
 		}
 	}
 	return 1;
 }
 
-bool checkIfExist(char* checkCmdNameToStop, int* index)//checks if a stoped cmd exists
+bool checkIfExist(char* checkCmdNameToStop, int* index, timeOut** arrayOfLockedCmds, int* TIMEOUT_ARRAY)//checks if a stoped cmd exists
 {
 	int i;
-	for (i = 0; i < TIMEOUT_ARRAY; i++)
+	for (i = 0; i < (*TIMEOUT_ARRAY); i++)
 	{
-		if (strcmp(arrayOfLockedCmds[i].stopedCmd, checkCmdNameToStop) == 0)
+		if (strcmp(((*arrayOfLockedCmds))[i].stopedCmd, checkCmdNameToStop) == 0)
 		{
-			if (arrayOfLockedCmds[i].active == true)
+			if (((*arrayOfLockedCmds))[i].active == true)
 			{
 				*index = i;
 				return true;
 			}
 		}
 	}
+	//if it wasnt found
 	return false;
 }
 
-void deleteFromLockedArray(int indexOfLockedToDel)//delete locked cmd from array
+void deleteFromLockedArray(int indexOfLockedToDel, timeOut** arrayOfLockedCmds)//delete locked cmd from array
 {
-	arrayOfLockedCmds[indexOfLockedToDel].active = false;
-	strcpy(arrayOfLockedCmds[indexOfLockedToDel].stopedCmd, "");
+	((*arrayOfLockedCmds))[indexOfLockedToDel].active = false;
+	strcpy(((*arrayOfLockedCmds))[indexOfLockedToDel].stopedCmd, "");
 }
 
 int letterFreq(char* srcFile)
