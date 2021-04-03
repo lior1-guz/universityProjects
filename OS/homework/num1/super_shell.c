@@ -49,8 +49,9 @@ void deleteFromLockedArray(int indexOfLockedToDel);
 int letterFreq(char* srcFile);
 int uppercaseByIndex(char* srcFile, char* destFile, int index);
 int lowercaseByIndex(char* srcFile, char* destFile, int index);
-
-
+int randomFile(int x, char* destFile);
+int compressFile(char* fileLocation, char* destFileLocation);
+int byebye();
 
 int main(int argc, char** argv)
 {
@@ -209,7 +210,7 @@ int superShellLaunch(char** args)
 
 		if (execvp(args[0], args) == -1)
 		{
-			perror("Super Shell");
+			printf("Not Supported\n");
 		}
 		exit(EXIT_FAILURE);
 	}
@@ -250,7 +251,7 @@ int superShellExec(char** args)
 		else//the time has not passed
 		{
 			fprintf(stderr, "The command %s is now locked!\n", args[0]);
-			return 1;
+			return -1;
 		}
 	}
 
@@ -264,12 +265,12 @@ int superShellExec(char** args)
 		if (args[1] == NULL || args[2] == NULL || args[3] == NULL)
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else if (num[0] == '-')/*check if args sent to the superShell are valid*/
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else
 		{
@@ -285,12 +286,12 @@ int superShellExec(char** args)
 		if (args[1] == NULL || args[2] == NULL || args[3] == NULL)
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else if (num[0] == '-')/*check if args sent to the superShell are valid*/
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else
 		{
@@ -306,12 +307,12 @@ int superShellExec(char** args)
 		if (args[1] == NULL || args[2] == NULL)
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else if (num[0] == '-')/*check if args sent to the superShell are valid*/
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else
 		{
@@ -336,12 +337,12 @@ int superShellExec(char** args)
 		if (args[1] == NULL || args[2] == NULL || args[3] == NULL)
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else if (num[0] == '-')
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else
 		{
@@ -354,19 +355,52 @@ int superShellExec(char** args)
 		if (args[1] == NULL || args[2] == NULL || args[3] == NULL)
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else if (num[0] == '-')
 		{
 			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
-			return 1;
+			return -1;
 		}
 		else
 		{
 			return lowercaseByIndex(args[1], args[2], atoi(args[3]));
 		}
 	}
-	// continue here
+	else if (strcmp(args[0], "randomFile") == 0)
+	{
+		num = args[1];
+		if (args[1] == NULL || args[2] == NULL)
+		{
+			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
+			return 1;
+		}
+		else if (num[0] == '-')
+		{
+			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
+			return -1;
+		}
+		else
+		{
+			return randomFile(atoi(args[1]), args[2]);
+		}
+	}
+	else if (strcmp(args[0], "compressFile") == 0)
+	{
+		if (args[1] == NULL || args[2] == NULL)
+		{
+			fprintf(stderr, "SuperShell: Wrong param were delivered!\n");
+			return 1;
+		}
+		else
+		{
+			return  compressFile(args[1], args[2]);
+		}
+	}
+	else if (strcmp(args[0], "byebye") == 0)
+	{
+		return byebye();
+	}
 	return superShellLaunch(args);
 }
 
@@ -688,3 +722,118 @@ int lowercaseByIndex(char* srcFile, char* destFile, int index)
 	return 1;
 }
 
+int randomFile(int x, char* destFile)
+{
+	int fd_dest, i, wbytes;
+	char randomletter[52] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	char buff[1] = "";
+	if ((fd_dest = open(destFile, O_WRONLY | O_CREAT | O_TRUNC, 0664)) == -1)//open dest file if exist otherwise create and write content
+	{
+		perror("open to");
+		return(-1);
+	}
+
+	for (i = 0; i < x; i++)
+	{
+		buff[0] = randomletter[random() % 52];
+		if ((wbytes = write(fd_dest, buff, 1)) == -1)
+		{
+			perror("write");
+			return(-1);
+		}
+	}
+	buff[0] = '\n';
+	if ((wbytes = write(fd_dest, buff, 1)) == -1)
+	{
+		perror("write");
+		return(-1);
+	}
+	close(fd_dest);
+	return 1;
+}
+
+int compressFile(char* fileLocation, char* destFileLocation)
+{
+	int fd_src, fd_dest, i, wbytes, rbytes, fileLen = 0;
+	int countLetIdentical = 1;
+	char buff[1] = "";
+	char buffCmp[1] = "";
+	char outPutBuff[3] = "";
+	char buffITOA[2] = "";
+	if ((fd_src = open(fileLocation, O_RDONLY)) == -1)//open src file for reading
+	{
+		perror("open to");
+		return(-1);
+	}
+	if ((fd_dest = open(destFileLocation, O_WRONLY | O_CREAT, 0666)) == -1)//open dest file if exist otherwise create and write content
+	{
+		perror("open to");
+		return(-1);
+	}
+	fileLen = lseek(fd_src, 0, SEEK_END);//count how many letters there are in the File
+	lseek(fd_src, 0, SEEK_SET);//puts the cursor on the start of the file
+	while (fileLen > 0)//runs until the end of the file
+	{
+		if ((rbytes = read(fd_src, buff, 1)) == -1)//start reading
+		{
+			perror("read source file");
+			return(-1);
+		}
+		if ((rbytes = read(fd_src, buffCmp, 1)) == -1)//start reading
+		{
+			perror("read source file");
+			return(-1);
+		}
+		while (buff[0] == buffCmp[0])//check if both are equal
+		{
+			countLetIdentical++;
+			if (fileLen - countLetIdentical > 0)
+			{
+				if ((rbytes = read(fd_src, buffCmp, 1)) == -1)//start reading
+				{
+					perror("read source file");
+					return(-1);
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+		if (countLetIdentical >= 4)
+		{
+			outPutBuff[0] = buff[0];
+			sprintf(buffITOA, "%d", countLetIdentical);
+			outPutBuff[1] = buffITOA[0];
+			if ((wbytes = write(fd_dest, outPutBuff, 2)) == -1)
+			{
+				perror("write");
+				return(-1);
+			}
+			fileLen -= countLetIdentical;
+		}
+		else
+		{
+			fileLen -= countLetIdentical;
+			while (countLetIdentical > 0)
+			{
+				if ((wbytes = write(fd_dest, buff, 1)) == -1)
+				{
+					perror("write");
+					return(-1);
+				}
+				countLetIdentical--;
+			}
+		}
+		lseek(fd_src, -1, SEEK_CUR);
+		countLetIdentical = 1;
+	}
+	close(fd_dest);
+	close(fd_src);
+	return 1;
+}
+
+int byebye()
+{
+	return 0;
+}
