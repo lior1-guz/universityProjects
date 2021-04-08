@@ -44,7 +44,6 @@ public class Board {
 				}
 			}
 		}
-		
 		return isFullBoard;
 	}
 	
@@ -71,47 +70,54 @@ public class Board {
 	
 	protected int maxLineContaining(int i, int j)
 	{
-		int currentSequence=0;
-		int directionX=-1,directionY=-1;
-		int maxSequence=0;
-		while(directionX!=1 || directionY!=1)
-		{
-			if(directionX!=0 || directionY!=0)
-				currentSequence=rayLength(i,j,directionX,directionY);
-			directionY++;
-			if(directionY==1 && directionX!=1)
-			{
-				directionX++;
-				directionY=-1;
-			}
-			if(currentSequence>maxSequence)
-				maxSequence=currentSequence;
-		}
-		return maxSequence;
+		int rMove, dMove, lMove, uMove, ldMove, rdMove, luMove, ruMove;
+		int maxLenMove = 0;
+		//r - right , d - down , l - left , u - up , ld - left + down and so on..
+		ldMove = rayLength(i, j, -1, 1);
+		rdMove = rayLength(i, j, 1, 1);
+		luMove = rayLength(i, j, -1, -1);
+		ruMove = rayLength(i, j, 1, -1);
+		rMove = rayLength(i, j, 1, 0);
+		dMove = rayLength(i, j, 0, 1);
+		lMove = rayLength(i, j, -1, 0);
+		uMove = rayLength(i, j, 0, -1);
+		
+		
+		//check if we need to update maxLenMove 
+		if (uMove + dMove - 1 > maxLenMove)
+			maxLenMove = uMove + dMove - 1;
+		if (rMove + lMove - 1 > maxLenMove)
+			maxLenMove = rMove + lMove - 1;
+		if (ruMove + ldMove - 1 > maxLenMove)
+			maxLenMove = ruMove + ldMove - 1;
+		if (rdMove + luMove - 1 > maxLenMove)
+			maxLenMove = rdMove + luMove - 1;
+		return maxLenMove;
 	}
 	
 	private int rayLength(int x, int y, int dx, int dy)
 	{
-		int directionX=x+dx;
-		int directionY=y+dy;
-		int sequenceInARow=1;
-		while(!(directionX>=n||directionX<0 ||directionY>=m || directionY<0))/*check if we 
-		are still in the boundaries of the board*/	
+		int NewXDirec = x, NewYDirec = y, len = 0;
+		if (board[x][y] == null) //stop looking there is nothing out there
 		{
-			if(board[directionX][directionY]==get(x,y))
-			{
-				sequenceInARow++;
+			return 0;
+		}
+		while ((NewXDirec < n && NewXDirec > -1) && (NewYDirec < m && NewYDirec > -1)) //Check if we are in the boundaries
+		{
+			if ((board[NewXDirec][NewYDirec] == board[x][y])) // check if the next one is the same as the current
+			{ 
+				len++;
+				NewXDirec += dy;
+				NewYDirec += dx;
 			}
 			else
 				{
-				return sequenceInARow;
+				return len;
 				}
-			directionX=directionX+dx;
-			directionY=directionY+dy;
+
 		}
-		return sequenceInARow;
+		return len;
 	}
-	
 	
 
 }

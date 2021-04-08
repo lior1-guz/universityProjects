@@ -6,11 +6,10 @@ public class ReversedWords {
 	public static int checkReversed()
 	{
 		Node root = new Node();
-		boolean stopWhile=false;
 		int counterOfReversed=0;
 		Scanner s = new Scanner(System.in);
 		String tempStr;
-		while(s.hasNext() && !stopWhile)//run until there is no more strings in the buff
+		while(s.hasNext())//run until there is no more strings in the buff
 		{
 			tempStr=s.next();
 			if(!tempStr.equals("X")) //if we haven't reached to the end get the data from the user
@@ -23,7 +22,7 @@ public class ReversedWords {
 			}
 			else
 			{
-				stopWhile=true;
+				break;
 			}
 		}
 		return counterOfReversed;

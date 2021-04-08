@@ -11,6 +11,8 @@ public class FourInARow extends Game {
 	@Override
 	protected boolean doesWin(int i, int j)
 	{
+		System.out.println(maxLineContaining(i,j));//new added
+		System.out.println("this is i="+i);//check who is i and who is j
 		if(maxLineContaining(i,j)==4)
 		{
 			return true;
@@ -21,6 +23,10 @@ public class FourInARow extends Game {
 	@Override
 	protected boolean onePlay(Player p)
 	{
+		if(isFull())
+		{
+			return false;
+		}
 		System.out.println(p + ", please enter column: ");
 		int col=s.nextInt();
 		int row=5;
@@ -56,9 +62,10 @@ public class FourInARow extends Game {
 			{
 				colFull=false;
 			}
-			
 		}
+
 		set(row,col,p);
+		System.out.println(toString());
 		return doesWin(row,col);
 	}
 }

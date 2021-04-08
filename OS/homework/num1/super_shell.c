@@ -472,7 +472,7 @@ int encryptFile(char* srcFile, int num, char* destFile)//param sent to the func 
 	}
 	while (rbytes > 0)
 	{
-		for (i = 0; i < rbytes - 1; i++)
+		for (i = 0; i < rbytes; i++)
 		{
 			buff[i] = (buff[i] + num) % MODULU_ENCRYPTION;//encrypt
 		}

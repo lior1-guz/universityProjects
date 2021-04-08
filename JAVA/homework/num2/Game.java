@@ -27,19 +27,24 @@ public class Game extends Board  {
 	
 	protected boolean onePlay(Player p)
 	{
+		if(isFull())
+		{
+			return false;
+		}
 		System.out.println(p + ", please enter x and y: ");
 		int i=s.nextInt();
 		int j=s.nextInt();	
-		boolean checkSum=isEmpty(i,j);
-		while(checkSum==false)//check if the place the user asked is valid for use
+		boolean isEmpty=isEmpty(i,j);
+		while(isEmpty==false)//check if the place the user asked is valid for use
 		{
 			System.out.println("There is a piece there already...");
 			System.out.println(p + ", please enter x and y: ");
 			i=s.nextInt();
 			j=s.nextInt();	
-			checkSum=isEmpty(i,j);
+			isEmpty=isEmpty(i,j);
 		}
 		set(i,j,p);
+		System.out.println(toString());
 		return doesWin(i,j);
 	} 
 	
@@ -47,13 +52,7 @@ public class Game extends Board  {
 	{
 		boolean continuePlaying = true;
 		while (continuePlaying)
-		{
-			if(isFull())
-			{
-				System.out.println("The game ended in a draw!");
-				break;
-			}
-			
+		{	
 			if (onePlay(players[0]))
 			{
 				System.out.println(players[0]+" Won!");
@@ -64,6 +63,11 @@ public class Game extends Board  {
 			{
 				System.out.println(players[1]+" Won!");
 				return players[1];
+			}
+			if(isFull())
+			{
+				System.out.println("The game ended in a draw!");
+				break;
 			}
 		}
 		return null;
