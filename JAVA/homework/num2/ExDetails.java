@@ -1,5 +1,6 @@
 package util;
 
+
 public class ExDetails {
 	private String id;
 	private String firstName;

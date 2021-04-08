@@ -1,6 +1,7 @@
 package bank;
 
 
+
 public class ProAccount extends Account {
 
 	private int numberAdded;

@@ -1,6 +1,7 @@
 package game;
 
 
+
 public class FourInARow extends Game {
 	
 	public FourInARow(String player1, String player2)

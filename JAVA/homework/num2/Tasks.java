@@ -5,6 +5,7 @@ public class Tasks {
 private int[][] tasks;
 private int numOfTasks;
 
+
 public Tasks(int num)
 {
 	tasks=new int[num][num];

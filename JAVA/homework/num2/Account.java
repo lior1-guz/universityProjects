@@ -1,5 +1,6 @@
 package bank;
 
+
 public class Account {
 
 	private int moneyInBank;

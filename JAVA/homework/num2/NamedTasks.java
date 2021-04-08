@@ -1,5 +1,6 @@
 package tasks;
 
+
 public class NamedTasks extends Tasks{
 	private String[] names;
 	public NamedTasks(String[] names)

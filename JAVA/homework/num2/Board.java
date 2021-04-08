@@ -1,5 +1,6 @@
 package game;
 
+
 public class Board {
 	
 	protected Player[][] board;

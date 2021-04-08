@@ -1,5 +1,6 @@
 package tree;
 
+
 public class Node {
 	private int count;
 	private Node[] children;

@@ -3,6 +3,7 @@ import java.util.Scanner;
 
 public class ReversedWords {
 	
+
 	public static int checkReversed()
 	{
 		Node root = new Node();
